@@ -1,12 +1,16 @@
 __author__ = 'carusot'
 
-import praw, requests, time, json
+import time
+import json
+
+import praw
+import requests
+
 from set_parse import full_output, checker
-from datetime import datetime
 
 
 checkList = r'/Users/carusot/Documents/Python/setlistBot/aq/checked'
-#checkList = r'/home/tomplex/aq_setlist/aq/checked'
+#checkList = r'/home/tomplex/botplex/checked'
 
 # loads list of comments that have been replied to already
 with open(checkList, 'r') as f:
@@ -36,8 +40,7 @@ while True:
             r = requests.get('http://aqueousband.com/shows/{}.json'.format(checker(body)))
 
             if r.status_code == 200:
-                with open(checkList, 'w') as f:
-                    json.dump(checked, f)
+                comment.reply(full_output(r.json()))
                 print('replied with setlist')
                 time.sleep(300)
 
