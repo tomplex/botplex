@@ -4,9 +4,8 @@ import time
 import praw
 
 
-from aq.tools.setlist import Setlist
-
-from aq.tools.bot_tools import reply,log,checker,find_date
+from tools.setlist import Setlist
+from tools.bot_tools import reply,log,checker,find_date
 
 
 # bot itself
