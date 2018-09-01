@@ -1,48 +1,46 @@
-__author__ = 'carusot'
 
-import time
+__author__ = 'tom caruso'
+
 import praw
+import setlist
+
+from datetime import datetime
+from collections import namedtuple
+
+submission = namedtuple('submission', ['id', 'body', 'author', 'post_date', 'request_date'])
+comment = namedtuple('comment', ['id', 'body', 'author', 'post_date', 'request_date'])
 
 
-from tools.setlist import Setlist
-from tools.bot_tools import reply,log,checker,find_date
+class Bot:
+    def __init__(self, settings):
+        self._settings = settings
+        self._praw = self.login()
 
+    def login(self):
+        return praw.Reddit(client_id=self._settings['client_id'],
+                           client_secret=self._settings['client_secret'],
+                           username=self._settings['username'],
+                           password=self._settings['password'],
+                           user_agent=self._settings['user_agent']
+                           )
 
-# bot itself
-bot = praw.Reddit('Aqueous setlist fetcher, v1.2 by /u/eyesoftheworld4')
-bot.login('botplex', 'warren')
+    def fetch_comments(self, subreddit, key=None):
+        if not key:
+            key = lambda x: x
+        for cmt in filter(key, self._praw.subreddit(subreddit).comments()):
+            yield cmt
 
-while True:
+    def fetch_submissions(self, subreddit, key=None):
+        if not key:
+            key = lambda x: x
+        for sbm in filter(key, self._praw.subreddit(subreddit).submissions()):
+            yield sbm
 
-    sub = bot.get_subreddit('aqueousband')
+    def get_comment(self, cmt_id):
+        return self._praw.comment(cmt_id)
 
-    for comment in sub.get_comments():
+    def get_submission(self, sub_id):
+        return self._praw.submission(sub_id)
 
-        if checker(comment.body, comment.id) is False:
-            continue
-
-
-        set = Setlist(find_date(comment.body))
-
-        if set.compiled is None:
-            reply('Sorry, setlist not found!', comment, 1)
-
-        else:
-            reply(set.compiled, comment, 0)
-
-
-
-    log('waiting 10 minutes to re-check comments')
-    time.sleep(600)
-
-
-
-
-
-
-
-
-
-
-
-
+    def reply(self, item, message):
+        pass
