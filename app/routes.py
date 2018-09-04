@@ -3,7 +3,7 @@ from flask import render_template, request
 from flask.json import jsonify
 
 
-from app import nugs_manager, archive_manager, app
+from app import nugs_manager, archive_manager, app, actions
 from app.database import Database
 from app.background_task import run_background_task
 
@@ -56,6 +56,12 @@ def metadata_status():
     }
 
     return jsonify(data)
+
+
+@app.route('/reddit_loop', methods=['POST'])
+def reddit_loop():
+    run_background_task(actions.reddit_bot_loop)
+    return jsonify({'success': True, 'error': None})
 
 
 @app.route('/replies', methods=['GET'])
