@@ -41,9 +41,18 @@
                 <article class="tile is-child notification">
                     <div class="content">
                         <p class="title">Recent Replies</p>
-                        <div class="content">
-
-                        </div>
+                        <table id="replies" class="table is-striped is-narrow">
+                            <thead>
+                                <tr>
+                                    <th>Author</th>
+                                    <th>Request</th>
+                                    <th>Post Date</th>
+                                    <th>Reply Date</th>
+                                    <th>Post Type</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </article>
             </div>
@@ -56,6 +65,7 @@
 
     $(document).ready(function () {
         getMetadataStatus();
+        getReplies();
     });
 
     $("#refresh-archive-full").on('click', function (event) {
@@ -80,6 +90,29 @@
             })
         })
 
+    }
+
+    function getReplies(limit) {
+        // var tbody = $("#replies tbody");
+        $.getJSON(`/replies?limit=${limit}`, function (data) {
+            $.each(data[0], function (idx, obj) {
+                console.log(obj);
+                var newRow = createReplyRow(obj);
+                console.log(newRow);
+                $("#replies tbody").append(newRow);
+            })
+
+        })
+    }
+
+    function createReplyRow(reply) {
+        return `<tr>
+                    <td>${reply.author}</td>
+                    <td>${reply.request_date.substring(0, 10)}</td>
+                    <td>${reply.post_date}</td>
+                    <td>${reply.reply_date}</td>
+                    <td>${reply.reply_type}</td>
+                </tr>`
     }
 
 
