@@ -5,7 +5,7 @@ A reddit bot which fetches setlist data from http://aqueousband.com, plus show m
 ### Running locally
 
 You can run locally, but you probably shouldn't, because it would also be responding to comments on the live subreddit. However, if you must, you'll need to 
-create a .env file in the base directory with the following environment variables set:
+create a `.env` file in the base directory with the following environment variables set:
 
 ```bash
 export BOTPLEX_USERNAME=""
