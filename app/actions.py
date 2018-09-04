@@ -16,8 +16,8 @@ def less_than_a_week_old(timestamp: int) -> bool:
     return (d2 - d1).days <= 7
 
 
-def should_respond(created, text) -> bool:
-    return less_than_a_week_old(created) and setlist.has_setlist_mark(text)
+def should_respond(created, text, author) -> bool:
+    return less_than_a_week_old(created) and setlist.has_setlist_mark(text) and author != 'botplex'
 
 
 def reddit_bot_loop():
@@ -30,7 +30,7 @@ def reddit_bot_loop():
         logging.info("Waiting for updates to finish...")
         time.sleep(10)
 
-    for comment in bot.fetch_comments(SUBREDDIT, key=lambda cmt: not db.replied_to_comment(cmt.id) and should_respond(cmt.created, cmt.body)):
+    for comment in bot.fetch_comments(SUBREDDIT, key=lambda cmt: not db.replied_to_comment(cmt.id) and should_respond(cmt.created, cmt.body, cmt.author)):
         logging.info("Responding to comment: " + str(comment))
 
         for requested_date in setlist.get_setlist_dates(comment.body):
@@ -38,7 +38,7 @@ def reddit_bot_loop():
             comment.reply(reply_text)
             db.record_comment_reply(comment, requested_date)
 
-    for submission in bot.fetch_submissions(SUBREDDIT, key=lambda sub: not db.replied_to_comment(sub.id) and should_respond(sub.created, sub.selftext)):
+    for submission in bot.fetch_submissions(SUBREDDIT, key=lambda sub: not db.replied_to_comment(sub.id) and should_respond(sub.created, sub.selftext, sub.author)):
         logging.info("Responding to submission: " + str(submission))
 
         for requested_date in setlist.get_setlist_dates(submission.selftext):
