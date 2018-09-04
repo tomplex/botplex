@@ -6,7 +6,7 @@ from app.database import Database
 from app.reddit_bot import RedditBot
 from app import setlist
 
-SUBREDDIT = 'testingground4bots'
+SUBREDDIT = 'aqueousband'
 
 
 def less_than_a_week_old(timestamp: int) -> bool:
