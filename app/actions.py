@@ -45,5 +45,5 @@ def reddit_bot_loop():
             reply_text = setlist.get_setlist(requested_date)
             submission.reply(reply_text)
             db.record_submission_reply(submission, requested_date)
-
+    logging.info("Complete.")
     db.connection.close()
