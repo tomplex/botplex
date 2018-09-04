@@ -1,6 +1,8 @@
 import logging
 import time
-from datetime import datetime, timedelta
+
+from praw import exceptions
+from datetime import datetime
 
 from app.database import Database
 from app.reddit_bot import RedditBot
@@ -35,15 +37,28 @@ def reddit_bot_loop():
 
         for requested_date in setlist.get_setlist_dates(comment.body):
             reply_text = setlist.get_setlist(requested_date)
-            comment.reply(reply_text)
-            db.record_comment_reply(comment, requested_date)
+            try:
+                comment.reply(reply_text)
+                db.record_comment_reply(comment, requested_date)
+            except exceptions.APIException as e:
+                # Probably a RateLimit
+                logging.info("caught an exception: " + str(e))
+                logging.info("sleeping..")
+                time.sleep(5)
 
     for submission in bot.fetch_submissions(SUBREDDIT, key=lambda sub: not db.replied_to_comment(sub.id) and should_respond(sub.created, sub.selftext, sub.author)):
         logging.info("Responding to submission: " + str(submission))
 
         for requested_date in setlist.get_setlist_dates(submission.selftext):
             reply_text = setlist.get_setlist(requested_date)
-            submission.reply(reply_text)
-            db.record_submission_reply(submission, requested_date)
+            try:
+                submission.reply(reply_text)
+                db.record_submission_reply(submission, requested_date)
+            except exceptions.APIException as e:
+                # Probably a RateLimit
+                logging.info("caught an exception: " + str(e))
+                logging.info("sleeping..")
+                time.sleep(5)
+
     logging.info("Complete.")
     db.connection.close()
