@@ -1,3 +1,5 @@
+import logging
+
 __author__ = 'tom caruso'
 
 
@@ -21,20 +23,23 @@ class RedditBot:
     def fetch_comments(self, subreddit, key=None):
         if not key:
             key = lambda x: x
-        for cmt in filter(key, self._praw.subreddit(subreddit).comments()):
-            yield cmt
+        try:
+            for cmt in filter(key, self._praw.subreddit(subreddit).comments()):
+                yield cmt
+        except Exception as e:
+            logging.info("Encountered exception in fetch_comments: ")
+            logging.info(e)
+            self.login()
+            raise StopIteration
 
     def fetch_submissions(self, subreddit, key=None):
         if not key:
             key = lambda x: x
-        for sbm in filter(key, self._praw.subreddit(subreddit).new()):
-            yield sbm
-
-    def get_comment(self, cmt_id):
-        return self._praw.comment(cmt_id)
-
-    def get_submission(self, sub_id):
-        return self._praw.submission(sub_id)
-
-    def reply(self, item, message):
-        item.reply(message)
+        try:
+            for sbm in filter(key, self._praw.subreddit(subreddit).new()):
+                yield sbm
+        except Exception as e:
+            logging.info("Encountered exception in fetch_submissions: ")
+            logging.info(e)
+            self.login()
+            raise StopIteration
