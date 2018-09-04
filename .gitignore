@@ -1,2 +1,9 @@
-
-
+.env
+.idea
+*.sqlite
+test/.cache
+*.csv
+*.sqlite-journal
+__pycache__/*
+app/__pycache__
+.DS_Store

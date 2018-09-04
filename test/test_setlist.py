@@ -1,6 +1,6 @@
 import json
 
-from setlist import generate_setlist_markdown
+from app.setlist import generate_setlist_markdown
 
 __author__ = 'tom caruso'
 

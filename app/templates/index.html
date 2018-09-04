@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Botplex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css"/>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <div class="tile is-ancestor">
+            <div class="tile is-vertical is-4">
+                <div class="tile">
+                    <div class="tile is-parent is-vertical">
+                        <article class="tile is-child notification">
+                            <h2 class="subtitle">Archive metadata</h2>
+                            <div class="content">
+                                <p><label>Last full refresh: <span id="archive_last_refresh_date"></span></label></p>
+                                <p><label>Last partial refresh: <span id="archive_last_partial_refresh_date"></span></label></p>
+                                <p><label>In progress: <span id="archive_refresh_in_progress"></span></label></p>
+                            </div>
+                            <div class="field"><button id="refresh-archive-full" class="button is-primary">Refresh archive data (full)</button></div>
+                            <div class="field"><button id="refresh-archive-partial" class="button is-primary">Refresh archive data (partial)</button></div>
+                        </article>
+                        <article class="tile is-child notification">
+                            <h2 class="subtitle">Nugs metadata</h2>
+                            <div class="content">
+                                <p><label>Last full refresh: <span id="nugs_last_refresh_date"></span></label></p>
+                                <p><label>In progress: <span id="nugs_refresh_in_progress"></span></label></p>
+                            </div>
+                            <button id="refresh-nugs" class="button is-primary">Refresh nugs data</button>
+
+                        </article>
+                    </div>
+                </div>
+            </div>
+            <div class="tile is-parent">
+                <article class="tile is-child notification">
+                    <div class="content">
+                        <p class="title">Recent Replies</p>
+                        <div class="content">
+
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+
+    </div>
+</section>
+</body>
+<script>
+
+    $(document).ready(function () {
+        getMetadataStatus();
+    });
+
+    $("#refresh-archive-full").on('click', function (event) {
+       $.post('/refresh_all_archive_items');
+    });
+
+    $("#refresh-archive-partial").on('click', function (event) {
+       $.post('/refresh_new_archive_items');
+    });
+
+    $("#refresh-nugs").on('click', function (event) {
+       $.post('/refresh_nugs_items');
+    });
+
+    function getMetadataStatus() {
+        $.getJSON('/metadata_status', function (data) {
+            $.each(data['nugs'], function (key, value) {
+                $("#nugs_" + key).text(value)
+            });
+            $.each(data['archive'], function (key, value) {
+                $("#archive_" + key).text(value)
+            })
+        })
+
+    }
+
+
+</script>
+</html>

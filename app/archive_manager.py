@@ -1,27 +1,33 @@
 import logging
+import os
 
-from internetarchive import search_items
-from database import Database
+from internetarchive import search_items, configure
+from app.database import Database
 
 
-def run_full_metadata_update():
-    logging.info("Running full Archive metadata update")
+configure(os.environ['ARCHIVE_EMAIL'], os.environ['ARCHIVE_PASSWORD'], config_file='/tmp/ia.ini')
+
+
+def run_metadata_update(update_type='full'):
+    logging.info(f"Running {update_type} Archive metadata update")
     with Database() as db:
-        db.execute('DELETE FROM archive_items')
-        db.cursor.executemany('INSERT INTO archive_items (aid, date_text, url) VALUES (?, ?, ?)', generate_all_items())
-        db.execute('UPDATE archive_metadata SET last_full_refresh_date = current_date')
+        if int(db.query('SELECT refresh_in_progress FROM archive_metadata')[0]):
+            logging.info("Skipping update due to in-progress refresh")
+            return
 
-    logging.info("Update complete.")
+        db.execute("UPDATE archive_metadata SET refresh_in_progress = 1")
+        db.commit()
 
+        if update_type == 'full':
+            db.execute('DELETE FROM archive_items')
+            generator = generate_all_items()
+        else:
+            last_partial_refresh = str(db.query('SELECT last_partial_refresh_date FROM archive_metadata')[0])
+            logging.info(f"Looking for shows added since last update at {last_partial_refresh}")
+            generator = generate_added_items_in_date_range(last_partial_refresh)
 
-def run_partial_metadata_update():
-    logging.info("Running partial Archive metadata update")
-    with Database() as db:
-        last_partial_refresh = str(next(db.query('SELECT last_partial_refresh_date FROM archive_metadata'))[0])
-        logging.info(f"Looking for shows added since last update at {last_partial_refresh}")
-
-        db.cursor.executemany('INSERT INTO archive_items (aid, date_text, url) VALUES (?, ?, ?)', generate_added_items_in_date_range(last_partial_refresh))
-        db.execute('UPDATE archive_metadata SET last_partial_refresh_date = current_date')
+        db.cursor.executemany('INSERT INTO archive_items (aid, date_text, url) VALUES (?, ?, ?)', generator)
+        db.execute('UPDATE archive_metadata SET last_full_refresh_date = current_timestamp, refresh_in_progress = 0')
 
     logging.info("Update complete.")
 
@@ -45,8 +51,8 @@ def archive_recording(date: str) -> str:
     with Database() as db:
         rows = db.query("SELECT url FROM archive_items WHERE date_text = ? ORDER BY aid ASC", (date,))
         try:
-            return next(rows)[0]
-        except StopIteration:
+            return rows[0]
+        except (IndexError):
             return ''
 
 

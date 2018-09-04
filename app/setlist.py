@@ -5,12 +5,18 @@ __author__ = 'tom caruso'
 import re
 import requests
 import typing
+import inflect
 
-import archive_manager
-import nugs_manager
+engine = inflect.engine()
+
+from app import nugs_manager, archive_manager
+
+AQ_SHOW_DATE = re.compile(r'AQ(\d\d\d\d-\d\d-\d\d)|AQ(\d\d\d\d\d\d\d\d)')
+NUMERALS = re.compile(r'I+')
 
 
-AQ_SHOW_DATE = re.compile('AQ(\d\d\d\d-\d\d-\d\d)|AQ(\d\d\d\d\d\d\d\d)')
+def truthy_tuple_value(t):
+    return t[0] or t[1]
 
 
 def has_setlist_mark(body: str):
@@ -20,7 +26,7 @@ def has_setlist_mark(body: str):
 
 
 def get_setlist_dates(comment: str):
-    return AQ_SHOW_DATE.findall(comment)
+    return (truthy_tuple_value(t) for t in AQ_SHOW_DATE.findall(comment))
 
 
 def get_setlist(date: str) -> str:
@@ -37,6 +43,12 @@ def get_show_data(date: str) -> dict:
     return {}
 
 
+def numeral_to_word(input_string):
+    if NUMERALS.match(input_string):
+        return engine.number_to_words(len(input_string))
+    return input_string
+
+
 def process_song(song: dict, last_song: bool, note_counter: int) -> typing.Tuple[str, dict]:
     processed = song['name']
     notes = {}
@@ -44,7 +56,7 @@ def process_song(song: dict, last_song: bool, note_counter: int) -> typing.Tuple
         processed = '*' + processed + '*'
     if song['notes']:
         for note in song['notes']:
-            processed += f' ^{note_counter}'
+            processed += f'^{note_counter} '
             notes[note_counter] = note
             note_counter += 1
     if song['transition']:
@@ -59,7 +71,7 @@ def generate_setlist_markdown(show_data: dict) -> str:
     all_notes = {}
     markdown = f"""##{show_data['venue']['name']} {show_data['venue']['location']} - {show_data['performed_at']}\n---\n"""
     for setlist in show_data['setlists']:
-        markdown += f"""#####{setlist['name'].title()}\n\n"""
+        markdown += f"""#####{setlist['name']}\n\n"""
 
         for idx, song in enumerate(setlist['songs']):
             last_song = idx == len(setlist['songs']) - 1
