@@ -1,5 +1,5 @@
 
-from flask import render_template
+from flask import render_template, request
 from flask.json import jsonify
 
 
@@ -58,7 +58,13 @@ def metadata_status():
     return jsonify(data)
 
 
-@app.route('/run', methods=['POST'])
-def run():
+@app.route('/replies', methods=['GET'])
+def replies():
+    with Database() as db:
+        limit = request.args.get('limit', 'ALL')
+        sql = f"""
+        SELECT json_agg(row_to_json(r)) FROM (SELECT * FROM replies ORDER BY reply_date DESC LIMIT {limit}) r
+        """
+        results = db.query(sql)
 
-    return jsonify({'success': True})
+    return jsonify(results)
