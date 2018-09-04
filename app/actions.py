@@ -44,9 +44,3 @@ def reddit_bot_loop():
             db.record_submission_reply(submission, requested_date)
 
     db.connection.close()
-
-
-if __name__ == '__main__':
-    import dotenv
-    dotenv.load_dotenv('/Users/tom/dev/botplex/.env')
-    reddit_bot_loop()
