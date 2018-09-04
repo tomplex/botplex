@@ -16,3 +16,4 @@ apscheduler
 python-dotenv
 inflect
 boto3
+psycopg2-binary

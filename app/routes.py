@@ -1,5 +1,3 @@
-import logging
-import os
 
 from flask import render_template
 from flask.json import jsonify
@@ -36,8 +34,14 @@ def partial_refresh_archive_items():
 @app.route('/metadata_status', methods=['GET'])
 def metadata_status():
     with Database() as db:
+        # nugs = db.query('SELECT row_to_json(r) FROM (select * from nugs_metadata) r')
+        # archive = db.query('SELECT row_to_json(r) FROM (select * from archive_metadata) r')
         nugs = db.query('SELECT * FROM nugs_metadata')
-        archive = db.query('SELECT * FROM archive_metadata')
+        archive = db.query('select * from archive_metadata')
+        sql = """
+        SELECT json_build_object('nugs', row_to_json(
+        
+        """
 
     data = {
         'nugs': {

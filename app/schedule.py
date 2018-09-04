@@ -14,13 +14,15 @@ def setup_scheduler():
     atexit.register(scheduler.shutdown)
 
     logging.info("Adding scheduler jobs")
+    # Run the reddit loop every 2 minutes
     scheduler.add_job(
         func=actions.reddit_bot_loop,
-        trigger=IntervalTrigger(minutes=5),
+        trigger=IntervalTrigger(minutes=2),
         id='reddit_loop',
         name='Check for new reddit comments and respond',
         replace_existing=True)
 
+    # Run a full archive metadata update every week
     scheduler.add_job(
         func=archive_manager.run_metadata_update,
         trigger=IntervalTrigger(weeks=1),
@@ -29,6 +31,7 @@ def setup_scheduler():
         replace_existing=True
     )
 
+    # Run a partial metadata update (looking for recently added items) every day
     scheduler.add_job(
         func=lambda: archive_manager.run_metadata_update(update_type='partial'),
         trigger=IntervalTrigger(days=1),
@@ -37,6 +40,7 @@ def setup_scheduler():
         replace_existing=True
     )
 
+    # Update the nugs database every 2 hours
     scheduler.add_job(
         func=nugs_manager.run_full_metadata_update,
         trigger=IntervalTrigger(hours=2),

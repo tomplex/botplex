@@ -1,4 +1,5 @@
 import logging
+import time
 from datetime import datetime, timedelta
 
 from app.database import Database
@@ -26,6 +27,10 @@ def reddit_bot_loop():
     logging.info("Starting reddit bot loop")
     bot = RedditBot()
     db = Database()
+
+    while db.any_update_in_progress():
+        # If any metadata updates are happening, wait for them to finish.
+        time.sleep(10)
 
     for comment in bot.fetch_comments(SUBREDDIT, key=lambda cmt: not db.replied_to_comment(cmt.id) and should_respond(cmt.created, cmt.body)):
         logging.info("Responding to comment: " + str(comment))

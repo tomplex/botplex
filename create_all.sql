@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS replies;
 CREATE TABLE replies (
-  rid INTEGER PRIMARY KEY AUTOINCREMENT,
+  rid SERIAL PRIMARY KEY,
   id VARCHAR,
   body VARCHAR,
   author VARCHAR,
@@ -12,7 +12,7 @@ CREATE TABLE replies (
 
 DROP TABLE IF EXISTS archive_items;
 CREATE TABLE archive_items (
-  item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id SERIAL PRIMARY KEY,
   aid VARCHAR,
   date_text VARCHAR,
   url VARCHAR
@@ -22,14 +22,14 @@ DROP TABLE IF EXISTS archive_metadata;
 CREATE TABLE archive_metadata (
   last_full_refresh_date TIMESTAMP,
   last_partial_refresh_date TIMESTAMP,
-  refresh_in_progress INTEGER DEFAULT 0
+  refresh_in_progress BOOLEAN DEFAULT FALSE
 );
 
-INSERT INTO archive_metadata(last_full_refresh_date, last_partial_refresh_date) VALUES ('2010-01-01', current_date);
+INSERT INTO archive_metadata(last_full_refresh_date, last_partial_refresh_date) VALUES ('2010-01-01', now());
 
 DROP TABLE IF EXISTS nugs_items;
 CREATE TABLE nugs_items(
-  item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id SERIAL PRIMARY KEY,
   date_text VARCHAR,
   url VARCHAR
 );
@@ -37,7 +37,7 @@ CREATE TABLE nugs_items(
 DROP TABLE IF EXISTS nugs_metadata;
 CREATE TABLE nugs_metadata (
   last_refresh_date   TIMESTAMP,
-  refresh_in_progress INTEGER DEFAULT 0
+  refresh_in_progress BOOLEAN DEFAULT FALSE
 );
 
 INSERT INTO nugs_metadata(last_refresh_date) VALUES ('2010-01-01');

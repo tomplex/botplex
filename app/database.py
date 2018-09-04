@@ -1,25 +1,16 @@
-import logging
-import sqlite3
+import psycopg2
 import os
 
 from datetime import datetime
 
-from app import basedir
 
-env = os.environ.get('FLASK_ENV', '')
-
-PRODUCTION_DATABASE_NAME = str(basedir / (env + '.sqlite'))
-TEST_DATABASE_NAME = str(basedir / 'test.sqlite')
-
-database_name = TEST_DATABASE_NAME
-
-if env == 'production':
-    database_name = PRODUCTION_DATABASE_NAME
+def get_dsn():
+    return f"host={os.environ.get('PGHOST')} port={os.environ.get('PGPORT')} user={os.environ.get('PGUSER')} password={os.environ.get('PGPASSWORD')}"
 
 
 class Database:
-    def __init__(self, name=database_name):
-        self._conn = sqlite3.connect(name)
+    def __init__(self):
+        self._conn = psycopg2.connect(get_dsn())
         self._cursor = self._conn.cursor()
 
     def __enter__(self):
@@ -59,7 +50,7 @@ class Database:
         self.execute("""
             INSERT INTO replies (id, author, post_date, request_date, reply_type, reply_date)
             VALUES 
-                                (?, ?, ?, ?, 'comment', current_timestamp)
+                                (%s, %s, %s, %s, 'comment', now())
         """, (cmt.id, str(cmt.author), str(datetime.fromtimestamp(cmt.created)), str(request_date)))
         self.commit()
 
@@ -67,9 +58,14 @@ class Database:
         self.execute("""
             INSERT INTO replies (id, author, post_date, request_date, reply_type, reply_date)
             VALUES 
-                                (?, ?, ?, ?, 'submission', current_timestamp)
+                                (%s, %s, %s, %s, 'submission', now())
         """, (sub.id, str(sub.author), str(datetime.fromtimestamp(sub.created)), str(request_date)))
         self.commit()
 
     def replied_to_comment(self, cmt_id):
-        return self.query('SELECT * FROM replies WHERE id = ?', (cmt_id,))
+        return self.query('SELECT * FROM replies WHERE id = %s', (cmt_id,))
+
+    def any_update_in_progress(self):
+        archive = self.query("SELECT refresh_in_progress FROM archive_metadata")
+        nugs = self.query("SELECT refresh_in_progress FROM nugs_metadata")
+        return archive[0] or nugs[0]
